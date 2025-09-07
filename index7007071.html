@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pharaohs' Portal — Integrated (Glyph Pyramid + UI)</title>
+<style>Highlight your brands responsibility and warmth in the messaging maintain a modern magical style Angel team quality would you like me to add more playful text effects animated section transitions or a signature angel team welcome message to your current hotel site if yes please specify your favorite effect or let me suggest a few for you
+  :root{
+    --bg:#05060a; --gold:#ffd66b; --muted:#9aa3b2; --accent:#4aa3ff;
+  }
+  html,body{height:100%;margin:0;font-family: "Courier New", monospace, system-ui;background:var(--bg);color:var(--gold);overflow:hidden}
+
+/* --- Layers: matte, grain, dot-pattern --- */
+  .matte{position:fixed;inset:0;z-index:0;background:
+    radial-gradient(1200px 600px at 12% 20%, rgba(90,209,255,.03), transparent 12%),
+    radial-gradient(900px 500px at 92% 82%, rgba(255,90,158,.02), transparent 12%),
+    linear-gradient(180deg, rgba(0,0,0,.36), rgba(0,0,0,.64));backdrop-filter: blur(6px);}
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px);background-size:6px 6px;opacity:.12}
+  .dot-pattern{position:fixed;inset:0;z-index:2;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);background-size:36px 36px;opacity:.08}
+
+/* --- Canvas for pyramid/glyphs --- */
+  canvas#scene{position:fixed;inset:0;z-index:3;display:block}
+
+/* --- UI on top --- */
+  #ui{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;padding:18px;pointer-events:none}
+  header{pointer-events:auto;margin-top:8px;background:rgba(0,0,0,0.4);padding:12px 22px;border-radius:999px;color:var(--gold);font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .hint{position:fixed;left:18px;top:18px;color:var(--muted);font-size:13px;pointer-events:none}
+
+/* --- Offers (cards) --- */
+  .offers{pointer-events:auto;width:100%;max-width:1100px;margin:clamp(30px,9vh,70px) auto 80px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:0 18px;opacity:0;transform:translateY(18px);transition:all .6s ease}
+  .offers.visible{opacity:1;transform:none}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:14px;padding:18px;border:1px solid rgba(255,215,0,.06);backdrop-filter:blur(6px);box-shadow:0 6px 26px rgba(0,0,0,.5);pointer-events:auto}
+  .card h3{margin:0 0 8px;color:var(--gold)}
+  .card p{margin:0;color:var(--muted);font-size:0.95rem}
+  .card .price{margin-top:10px;color:var(--accent);font-weight:800}
+  .card a.btn{display:inline-block;margin-top:12px;padding:8px 12px;border-radius:8px;background:linear-gradient(90deg,var(--gold),#ffb84d);color:#061018;text-decoration:none;font-weight:700}
+
+/* --- ASCII faint background (pyramids) --- */
+  .ascii-bg{position:fixed;top:10%;left:50%;transform:translateX(-50%);z-index:4;pointer-events:none;color:rgba(255,215,0,0.05);font-size:12px;line-height:12px;white-space:pre}
+
+/* --- Orb top (logo) --- */
+  .orb-wrap{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:9;pointer-events:auto}
+  .orb{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#071019,#09121a);border:1px solid rgba(255,255,255,.06);box-shadow:0 8px 40px rgba(255,214,107,.05);cursor:pointer;transition:transform .18s}
+  .orb.pulse{animation:orbPulse 1600ms infinite ease-in-out}
+  @keyframes orbPulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+  .orb .dots{width:52px;height:52px;border-radius:50%;background:
+     radial-gradient(circle at 70% 30%, #fff 0 1.8px, transparent 2.2px) 0 0/6px 6px,
+     radial-gradient(circle at 20% 80%, #9df 0 1.8px, transparent 2.2px) 3px 3px/6px 6px,
+     radial-gradient(circle at 40% 40%, #f9c 0 1.8px, transparent 2.2px) 1px 5px/6px 6px, #071019;box-shadow:inset 0 0 12px rgba(255,215,120,.04)}
+
+/* --- Chat toggle + window --- */
+  .chat-toggle{position:fixed;right:18px;bottom:18px;z-index:12;width:62px;height:62px;border-radius:50%;background:linear-gradient(180deg,var(--gold),#ffb84d);display:grid;place-items:center;cursor:pointer;box-shadow:0 18px 50px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);pointer-events:auto}
+  .chat-window{position:fixed;right:18px;bottom:86px;width:360px;max-width:92vw;height:520px;background:rgba(6,10,14,0.98);color:#fff;border-radius:12px;box-shadow:0 30px 120px rgba(0,0,0,.6);z-index:13;display:none;flex-direction:column;pointer-events:auto}
+  .chat-header{padding:12px;border-bottom:1px solid rgba(255,255,255,.03);font-weight:700}
+  .chat-body{flex:1;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+  .chat-input{display:flex;padding:10px;border-top:1px solid rgba(255,255,255,.03)}
+  .chat-input input{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.04);background:rgba(255,255,255,.02);color:#fff}
+  .chat-input button{margin-left:8px;padding:8px 10px;border-radius:8px;background:var(--gold);border:0;color:#051423;font-weight:700}
+  .msg{max-width:80%;padding:8px 10px;border-radius:10px;font-size:14px}
+  .msg.agent{background:rgba(255,215,107,.08);align-self:flex-start;color:var(--gold)}
+  .msg.user{background:rgba(255,255,255,.04);align-self:flex-end;color:#fff}
+
+/* --- mouse follower (small orb) --- */
+  .mouse-dot{position:fixed;width:12px;height:12px;border-radius:50%;pointer-events:none;z-index:11;transform:translate(-50%,-50%);box-shadow:0 0 18px rgba(255,214,80,.2)}
+  
+  @media (max-width:900px){
+    .offers{grid-template-columns:1fr;max-width:98vw;margin:18px auto 60px;padding:0 4vw;}
+    .card{min-width:0;max-width:100vw;}
+    #ui{padding:8px;}
+    .chat-window{width:98vw;right:1vw;left:1vw;}
+  }
+  @media (max-width:560px){ .offers{grid-template-columns:1fr} header{font-size:1.1rem} .card h3{font-size:1.08em} .card p{font-size:0.98em} .card .price{font-size:1em} .chat-window{font-size:0.98em} }
+</style>
+</head>
+<body>
+
+  <!-- decorative layers -->
+  <div class="matte" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="dot-pattern" aria-hidden="true"></div>
+
+  <!-- canvas (pyramid + glyph rain) -->
+  <canvas id="scene"></canvas>
+
+  <!-- faint ascii pyramid behind UI -->
+  <div class="ascii-bg" aria-hidden="true">
+     /\\ I'll improve the sound effect to be softer and lower not a high beep and keep the interactive design as I'll update the sound to a gentle low frequency tone for more pleasant touch/lick feedback made changes
+    /  \\   /\\
+   /    \\ /  \\
+  /      \\    \\
+ /   /\\   \\    \\
+/___/__\\___\\____\\
+  </div>
+
+  <!-- UI -->
+  <div id="ui">
+    <div class="orb-wrap"><div class="orb pulse" id="orb" title="Enter the Portal"><div class="dots"></div></div></div>
+    <header>On The Edge Of History — We Meet</header>
+    <div class="hint">Move mouse: attract · Hold click: repel · Double-click: explode/rebuild</div>
+
+    <section class="offers" id="offers" aria-hidden="true">
+      <div class="card" data-pack="camel">
+        <h3>Camel Journey — Pharaohs' Pilgrimage</h3>
+        <p>Walk like Pharaohs… رحلة الفراعنة نحو الصحراء المقدسة.</p>
+        <div class="price">≈ 15–35 USD</div>
+        <a class="btn" data-action="start">Start your spiritual journey</a>
+      </div>
+      <div class="card" data-pack="horse">
+        <h3>Horse Adventure — Ride of the Divine Steed</h3>
+        <p>Mount like an ancient knight; follow the horizon into temples and tombs.</p>
+        <div class="price">≈ 13–30 USD</div>
+        <a class="btn" data-action="start">Start your spiritual journey</a>
+      </div>
+      <div class="card" data-pack="buggy">
+        <h3>Buggy Safari — Modern Chariot</h3>
+        <p>Feel the wind of Ra — fast, loud, and free across the dunes.</p>
+        <div class="price">≈ 35–65 USD</div>
+        <a class="btn" data-action="start">Start your spiritual journey</a>
+      </div>
+      <div class="card" data-pack="full">
+        <h3>Full Journey — Gate of Awareness</h3>
+        <p>All rituals combined — a path that begins at the desert and ends with a story you carry forever.</p>
+        <div class="price">≈ 90–220 USD</div>
+        <a class="btn" data-action="start">Start your spiritual journey</a>
+      </div>
+    </section>
+
+    <footer style="pointer-events:none">Nazlet El-Samman — Giza · On the edge of history we meet.</footer>
+  </div>
+
+  <!-- chat toggle & window -->
+  <div class="chat-toggle" id="chatToggle" title="Talk to the Portal">☥</div>
+  <div class="chat-window" id="chatWindow" aria-hidden="true">
+    <div class="chat-header">Portal Agent — Spiritual Guide</div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-input">
+      <input id="chatInput" placeholder="Ask about Camel / Horse / Buggy / Full Journey" />
+      <button id="chatSend">Send</button>
+    </div>
+  </div>
+
+  <!-- mouse follower -->
+  <div class="mouse-dot" id="mouseDot" aria-hidden="true"></div>
+
+  <!-- audio placeholder (unchanged) -->
+  <audio id="bgMusic" src="" preload="auto" loop></audio>
+
+<script>
+/* ========= Canvas Pyramid + Glyphs (merged & restored hieroglyphs + layers) ========= */
+(function(){
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d');
+  let DPR = Math.min(2, window.devicePixelRatio || 1);
+  let W = 0, H = 0, CX = 0, CY = 0;
+  let particles = [], rain = [], ripples = [], pyramidParticles = [], exploded=false, pyramidAngle=0, autoTimer=0;
+
+  // rich list of hieroglyphs + shapes (mix of dark/light glyphs)
+  const GLYPHS = ['𓂀','𓆣','𓋹','𓊹','𓏏','𓎛','𓃭','𓇳','𓈖','𓊽','𓊪','𓈙',
+                  '▲','△','◈','▴','•','·','✦','✧','✺','*','+','•'];
+  // helper: choose darker glyphs to simulate depth
+  const darkSet = new Set(['𓎛','𓃭','𓇳','𓈖','▴','▲','◈','𓊽']);
+  
+  function fit(){
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.width = Math.floor(innerWidth * DPR);
+    H = canvas.height = Math.floor(innerHeight * DPR);
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    CX = innerWidth/2; CY = innerHeight*0.58;
+    buildGrid();
+    buildPyramidParticles();
+  }
+  window.addEventListener('resize', fit);
+
+  // create base grid for particles (preserve previous dot-grid layer)
+  function buildGrid(){
+    particles.length = 0;
+    const cols = Math.floor(innerWidth/28);
+    const rows = Math.floor(innerHeight/28);
+    for(let y=0;y<rows;y++){
+      for(let x=0;x<cols;x++){
+        const px = x * (innerWidth/cols) + (Math.random()-0.5)*4;
+        const py = y * (innerHeight/rows) + (Math.random()-0.5)*4;
+        particles.push({x:px,y:py,bx:px,by:py,vx:0,vy:0,ch: GLYPHS[(x+y)%GLYPHS.length], shade: ((x+y)%3===0?0.56:0.92)});
+      }
+    }
+  }
+
+  // pyramid particle layout (3D-ish stack of glyphs)
+  function buildPyramidParticles(){
+    pyramidParticles.length = 0;
+    const baseSize = Math.max(10, Math.min(26, Math.floor(Math.cbrt((innerWidth*innerHeight)/120))));
+    const spacing = Math.min(28, Math.max(12, Math.floor(Math.min(innerWidth, innerHeight) / 45)));
+    let idx=0;
+    for(let layer=0; layer<baseSize; layer++){
+      const n = baseSize - layer;
+      const y = CY - layer * spacing * 0.82;
+      for(let i=0;i<n;i++){
+        for(let j=0;j<n;j++){
+          const ox = CX + (i - n/2) * spacing + (j - n/2) * spacing * 0.48;
+          const oz = (j - n/2) * spacing * 0.6;
+          const ch = GLYPHS[(idx++) % GLYPHS.length];
+          const shade = darkSet.has(ch) ? 0.6 : 0.95;
+          pyramidParticles.push({ox, oy:y + (j-n/2)*spacing*0.18, oz, x:ox + (Math.random()-0.5)*6, y:y+(Math.random()-0.5)*6, vx:0,vy:0,vz:0, ch, shade});
+        }
+      }
+    }
+  }
+
+  // glyph rain
+  function spawnRain(){
+    if(rain.length > 420) rain.shift();
+    const x = Math.random()*innerWidth;
+    rain.push({x, y:-20, ch: GLYPHS[(Math.random()*GLYPHS.length)|0], vy:1+Math.random()*2, alpha:0.9});
+  }
+  setInterval(spawnRain, 110);
+
+  // mouse
+  const mouse = {x:CX,y:CY,down:false};
+  window.addEventListener('mousemove', e=>{ mouse.x=e.clientX; mouse.y=e.clientY; document.getElementById('mouseDot').style.left = e.clientX + 'px'; document.getElementById('mouseDot').style.top = e.clientY + 'px';});
+  window.addEventListener('pointerdown', e=>{ mouse.down=true; ripple(e.clientX,e.clientY,1); burst(e.clientX,e.clientY,1.4); });
+  window.addEventListener('pointerup', ()=>{ mouse.down=false; });
+  window.addEventListener('dblclick', ()=>{ toggleExplode(); });
+
+  // ripples list
+  function ripple(x,y,k=1){ ripples.push({x,y,r:8*k,life:1}); }
+  function burst(cx,cy,power=1){
+    // affect pyramid particles strongly and grid lightly
+    for(const p of pyramidParticles){
+      const dx = p.x - cx, dy = p.y - cy; const d = Math.hypot(dx,dy)+1e-4;
+      const f = (power*1.2) * (120 / (d));
+      p.vx += (dx/d) * f * (0.6 + Math.random()*0.9);
+      p.vy += (dy/d) * f * (0.6 + Math.random()*0.9);
+      p.vz += (Math.random()-0.5) * (f*0.2);
+    }
+    for(const g of particles){
+      const dx=g.x-cx, dy=g.y-cy, d=Math.hypot(dx,dy)+1e-4;
+      const f=(power*0.9)*(90/(d));
+      g.vx += (dx/d) * f * (0.3+Math.random()*0.6);
+      g.vy += (dy/d) * f * (0.3+Math.random()*0.6);
+    }
+  }
+
+  // explode toggle
+  function toggleExplode(){ exploded = !exploded; if(exploded) burst(CX,CY,1.6); else burst(CX,CY,0.9); }
+
+  // palette transition (gold <-> nile blue)
+  function palette(t){
+    const hue = (40 + 210 * t) % 360;
+    const sat = 72 - 18 * Math.sin(t * Math.PI * 2);
+    const lig = 58 + 6 * Math.cos(t * Math.PI * 2);
+    return `hsl(${hue} ${sat}% ${lig}%)`;
+  }
+
+  // draw loop
+  let last = performance.now();
+  function tick(now){
+    requestAnimationFrame(tick);
+    const dt = Math.min(56, now - last); last = now;
+    autoTimer += dt;
+
+    // physics: pyramid rebuild by spring towards base when not exploded
+    for(const p of pyramidParticles){
+      // simple spring back to base
+      const dx = p.ox - p.x, dy = p.oy - p.y;
+      p.vx += dx * (exploded ? 0.006 : 0.035);
+      p.vy += dy * (exploded ? 0.006 : 0.035);
+      // slight z spring
+      p.vz += (0 - p.vz) * 0.02;
+
+      // mouse influence (attract or repel)
+      const mx = p.x - mouse.x, my = p.y - mouse.y, md = Math.hypot(mx,my);
+      if(md < 160){
+        const f = (1 - md/160) * (mouse.down ? 2.6 : -2.6);
+        p.vx += (mx/md||0.001) * f;
+        p.vy += (my/md||0.001) * f;
+      }
+
+      // damping
+      p.vx *= 0.94; p.vy *= 0.94; p.vz *= 0.95;
+      p.x += p.vx * (dt*0.016);
+      p.y += p.vy * (dt*0.016);
+    }
+
+    // grid particles mild spring
+    for(const g of particles){
+      const dx = g.bx - g.x, dy = g.by - g.y;
+      g.vx += dx * 0.02; g.vy += dy * 0.02;
+      const mdx = g.x - mouse.x, mdy = g.y - mouse.y, md = Math.hypot(mdx,mdy);
+      if(md < 120){
+        const m = (1 - md/120);
+        const sgn = mouse.down ? 1 : -1;
+        g.vx += sgn * (mdx/md||0.001) * m * 2.2;
+        g.vy += sgn * (mdy/md||0.001) * m * 2.2;
+      }
+      g.vx *= 0.92; g.vy *= 0.92;
+      g.x += g.vx * (dt*0.016); g.y += g.vy * (dt*0.016);
+    }
+
+    // rain
+    for(const r of rain){ r.y += r.vy; r.vy += 0.02; r.alpha *= 0.999; }
+    while(rain.length && rain[0].y > innerHeight + 80) rain.shift();
+
+    // auto toggle every ~7.5s
+    if(autoTimer > 7500){ autoTimer = 0; toggleExplode(); }
+
+    // render
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    // background subtle gradient
+    const T = (now*0.00016) % 1;
+    const g = ctx.createLinearGradient(0,0,0,innerHeight);
+    g.addColorStop(0, 'rgba(6,8,10,0.0)');
+    g.addColorStop(1, 'rgba(0,0,0,0.66)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,innerWidth,innerHeight);
+
+    // ripples
+    for(let i=ripples.length-1;i>=0;i--){
+      const R = ripples[i];
+      ctx.save(); ctx.globalAlpha = 0.32 * R.life; ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,214,107,0.9)';
+      ctx.beginPath(); ctx.arc(R.x,R.y,R.r,0,Math.PI*2); ctx.stroke(); ctx.restore();
+      R.r += 3.6; R.life -= 0.02; if(R.life <= 0) ripples.splice(i,1);
+    }
+
+    // draw grid glyphs (subtle)
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for(const g of particles){
+      ctx.globalAlpha = Math.max(0.06, Math.min(0.96, g.shade));
+      ctx.fillStyle = palette((T + (g.x%200)/600) % 1);
+      ctx.font = '13px monospace';
+      ctx.fillText(g.ch, g.x, g.y);
+    }
+
+    // glyph rain
+    ctx.globalAlpha = 1;
+    ctx.font = '18px serif';
+    for(const R of rain){
+      ctx.globalAlpha = Math.max(0.06, Math.min(1, R.alpha));
+      ctx.fillStyle = 'rgba(255,214,107,0.98)';
+      ctx.fillText(R.ch, R.x, R.y);
+    }
+
+    // pyramid particles (3D-ish projection)
+    if(pyramidParticles.length){
+      const cos = Math.cos(pyramidAngle), sin = Math.sin(pyramidAngle);
+      // slight rotation when exploded or idle
+      if(exploded) pyramidAngle += 0.012; else pyramidAngle += 0.004;
+      const cx = innerWidth/2, cy = innerHeight*0.46;
+      for(const p of pyramidParticles){
+        const rx = p.ox * Math.cos(pyramidAngle*0.6) - p.oz * Math.sin(pyramidAngle*0.6);
+        const rz = p.ox * Math.sin(pyramidAngle*0.6) + p.oz * Math.cos(pyramidAngle*0.6);
+        const sx = cx + (rx) * 1.02 + p.x - p.ox;
+        const sy = cy + (p.oy) - rz*0.06 + p.y - p.oy;
+        const depth = 1 - (rz / 1500);
+        const alpha = Math.max(0.06, Math.min(1, (p.shade * depth)));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = palette((T + (rz%300)/500) % 1);
+        ctx.font = '16px monospace';
+        // subtle shadow pass to create inner depth
+        ctx.fillText(p.ch, sx+0.9, sy+0.9);
+        ctx.globalAlpha = alpha;
+        ctx.fillText(p.ch, sx, sy);
+      }
+    }
+  }
+
+  fit();
+  requestAnimationFrame(tick);
+
+  // expose small API to trigger portal & rebuild externally if needed
+  window.PharaohsPortal = {
+    openPortal: function(){
+      document.getElementById('offers').classList.add('visible');
+      burst(CX, CY, 1.6);
+    },
+    rebuild: function(){ buildGrid(); buildPyramidParticles(); }
+  };
+
+  // initial small bursts to animate intro
+  setTimeout(()=>{ burst(CX, CY, 1.0); }, 600);
+  setTimeout(()=>{ burst(CX-140, CY-80, 0.9); }, 1200);
+
+})(); // end canvas module
+</script>
+
+<script>
+/* ========= UI interactions (orb, offers, chat Agent simple local) ========= */
+(function(){
+  const orb = document.getElementById('orb');
+  const offers = document.getElementById('offers');
+  const chatToggle = document.getElementById('chatToggle');
+  const chatWindow = document.getElementById('chatWindow');
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+
+  // orb behavior — click to open portal (single click) + pulse effect
+  orb.addEventListener('click', ()=>{
+    document.getElementById('offers').classList.add('visible');
+    // small visual burst (use exposed API)
+    if(window.PharaohsPortal && typeof window.PharaohsPortal.openPortal === 'function') window.PharaohsPortal.openPortal();
+  });
+
+  // clicking "Start your spiritual journey" opens chat with context
+  document.querySelectorAll('[data-action="start"]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const card = e.target.closest('.card');
+      const pack = card?.dataset?.pack || 'journey';
+      openChat();
+      appendUser(`I'm interested in ${pack}`);
+      sendToAgent(`I want details about ${pack}`);
+    });
+  });
+
+  // chat toggle
+  chatToggle.addEventListener('click', ()=>{
+    if(chatWindow.style.display === 'flex'){ chatWindow.style.display = 'none'; chatWindow.setAttribute('aria-hidden','true'); }
+    else { openChat(); }
+  });
+  function openChat(){ chatWindow.style.display = 'flex'; chatWindow.setAttribute('aria-hidden','false'); chatInput.focus(); appendAgent('Welcome — I am the Portal Agent. Tell me which experience you feel called to: Camel, Horse, Buggy, or the Full Journey.'); }
+  function appendAgent(txt){ const d=document.createElement('div'); d.className='msg agent'; d.textContent = txt; chatBody.appendChild(d); chatBody.scrollTop = chatBody.scrollHeight; }
+  function appendUser(txt){ const d=document.createElement('div'); d.className='msg user'; d.textContent = txt; chatBody.appendChild(d); chatBody.scrollTop = chatBody.scrollHeight; }
+
+  // simple local agent (phase1) — tone + pack detection
+  function detectIntent(text){
+    text = text.toLowerCase();
+    const out = {pack:null,tone:'calm'};
+    if(/camel|جمل|pharaoh|pilgrim/.test(text)) out.pack='camel';
+    if(/horse|حصان|steed/.test(text)) out.pack='horse';
+    if(/buggy|باجي|chariot/.test(text)) out.pack='buggy';
+    if(/full|all|complete|journey/.test(text)) out.pack='full';
+    if(/spirit|spiritual|روح|soul/.test(text)) out.tone='spiritual';
+    if(/adventur|thrill|fast|excite/.test(text)) out.tone='adventure';
+    return out;
+  }
+  function localReply(text){
+    const i = detectIntent(text);
+    const lines = {
+      camel: "The Camel Ride — Pharaohs' Pilgrimage. Imagine steps that once carried prayers to sacred tombs. Sunrise or twilight would be sublime.",
+      horse: "The Horse Ride — Ride of the Divine Steed. A fast, noble passage along heritage tracks.",
+      buggy: "The Buggy Adventure — Modern Chariot. For wind, speed and a wild horizon.",
+      full:  "The Full Journey — Gate of Awareness. A combined path; deep, ceremonial, unforgettable."
+    };
+    let intro = (i.tone==='spiritual')? "On the edge of history, the sands ask softly — come with an open heart. " : (i.tone==='adventure')? "Feel the wind — the dunes call. " : "Welcome, traveler. ";
+    const body = i.pack? lines[i.pack] : "Tell me which experience interests you — Camel, Horse, Buggy, or Full Journey.";
+    return intro + body + " Marhaba Habibi — say 'book' to continue.";
+  }
+
+  async function sendToAgent(msg){
+    appendUser(msg);
+    // if later you enable remote API, check window.PharaohsPortal.enableAPI...
+    appendAgent("Thinking...");
+    setTimeout(()=>{ // simulate thinking
+      // remove 'Thinking...' then append actual
+      if(chatBody.lastElementChild && chatBody.lastElementChild.textContent === 'Thinking...') chatBody.lastElementChild.remove();
+      appendAgent(localReply(msg));
+    }, 600 + Math.random()*700);
+  }
+
+  chatSend.addEventListener('click', ()=>{ const v=chatInput.value.trim(); if(!v) return; chatInput.value=''; sendToAgent(v); });
+  chatInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); chatSend.click(); } });
+
+  // small welcome after load
+  setTimeout(()=>{ /* nothing — wait for user to open */ }, 800);
+
+})(); // end UI module
+</script>
+
+</body>
+</html>
