@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Puerta al Antiguo Egipto",
+    "subtitle": "Descubre las maravillas de las pirámides",
+    "cta": "Activar portal"
+  },
+  "nav": {
+    "tours": "Tours",
+    "hotels": "Hoteles",
+    "packages": "Paquetes",
+    "gallery": "Galería",
+    "family": "Familia",
+    "contact": "Contacto",
+    "agent": "Agente"
+  },
+  "footer": {
+    "text": "Únete a miles de aventureros",
+    "view": "Ver todos los tours",
+    "book": "Reserva ahora - WhatsApp"
+  }
+}

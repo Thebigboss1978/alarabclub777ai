@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Gateway to Ancient Egypt",
+    "subtitle": "Discover the wonders of the pyramids",
+    "cta": "Activate Portal"
+  },
+  "nav": {
+    "tours": "Tours",
+    "hotels": "Hotels",
+    "packages": "Packages",
+    "gallery": "Gallery",
+    "family": "Family",
+    "contact": "Contact",
+    "agent": "Agent"
+  },
+  "footer": {
+    "text": "Join thousands of adventurers",
+    "view": "View All Tours",
+    "book": "Book Now - WhatsApp"
+  }
+}
